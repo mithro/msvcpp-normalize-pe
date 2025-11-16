@@ -20,7 +20,7 @@ More realistic program that:
 ## Compilation
 
 These programs are compiled by the GitHub Actions workflow with:
-- MSVC versions: 2017, 2019, 2022
+- MSVC version: 2019 (default on windows-latest runners)
 - Architectures: x86 (32-bit), x64 (64-bit)
 - Optimization levels: /Od (debug), /O2 (optimized)
 - Flags: `/std:c++17 /Zi /DEBUG:FULL /Brepro`

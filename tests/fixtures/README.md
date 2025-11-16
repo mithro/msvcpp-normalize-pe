@@ -21,7 +21,7 @@ fixtures/
 ### Automated (GitHub Actions)
 
 The Windows compilation test workflow automatically builds binaries for:
-- MSVC versions: 2017, 2019, 2022
+- MSVC version: 2019
 - Architectures: x86, x64
 - Optimization levels: /Od, /O2
 - Programs: simple, complex

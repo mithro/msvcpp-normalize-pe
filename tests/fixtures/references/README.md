@@ -36,10 +36,12 @@ After the workflow is created and running:
 Format: `{program}-msvc{version}-{arch}-{opt}.exe`
 
 Examples:
-- `simple-msvc2022-x64-O2.exe`
+- `simple-msvc2019-x64-O2.exe`
 - `complex-msvc2019-x86-Od.exe`
-- `simple-msvc2017-x64-Od.exe`
+- `simple-msvc2019-x64-Od.exe`
 
 ## Total Files
 
-24 reference binaries (3 MSVC × 2 arch × 2 opt × 2 programs)
+8 reference binaries (1 MSVC version × 2 arch × 2 opt × 2 programs)
+
+Note: Currently limited to MSVC 2019 as GitHub's windows-latest runners only provide this version by default. Testing multiple MSVC versions would require additional runner setup.
