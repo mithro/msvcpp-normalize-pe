@@ -93,7 +93,7 @@ clang-cl + lld-link
 * ❌ Requires switching from MSVC toolchain
 
 msvcpp-normalize-pe
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 * ✅ Works with native MSVC
 * ✅ Patches all 8 fields

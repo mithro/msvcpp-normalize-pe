@@ -1,5 +1,5 @@
 msvcpp-normalize-pe Documentation
-==============================
+==================================
 
 **Normalize PE files for reproducible MSVC++ builds**
 
