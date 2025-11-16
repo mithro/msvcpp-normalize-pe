@@ -158,7 +158,7 @@ jobs:
 
 ## Requirements
 
-- **Python 3.8+** (type hints, dataclasses)
+- **Python 3.9+** (type hints, dataclasses)
 - **Target files**: Windows PE executables (.exe) or DLLs (.dll)
 - **Architecture**: Works with both 32-bit (PE32) and 64-bit (PE32+) binaries
 
