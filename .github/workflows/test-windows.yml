@@ -1,0 +1,128 @@
+name: Test Windows C++ Compilation
+
+on:
+  push:
+    branches: [main, feature/*]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-windows-compilation:
+    name: Test ${{ matrix.program }} MSVC${{ matrix.msvc }} ${{ matrix.arch }} /${{ matrix.opt }}
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        msvc: ['2017', '2019', '2022']
+        arch: [x86, x64]
+        opt: [Od, O2]
+        program: [simple, complex]
+
+    env:
+      SOURCE_FILE: tests/fixtures/sources/${{ matrix.program }}.cpp
+      OUTPUT_EXE: ${{ matrix.program }}.exe
+      ORIGINAL_EXE: ${{ matrix.program }}-original.exe
+      REF_NAME: ${{ matrix.program }}-msvc${{ matrix.msvc }}-${{ matrix.arch }}-${{ matrix.opt }}.exe
+      REF_PATH: tests/fixtures/references/${{ matrix.program }}-msvc${{ matrix.msvc }}-${{ matrix.arch }}-${{ matrix.opt }}.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+          toolset: ${{ matrix.msvc == '2017' && '14.1' || matrix.msvc == '2019' && '14.2' || '14.3' }}
+
+      - name: Compile C++ program
+        shell: cmd
+        run: |
+          cl.exe /std:c++17 /${{ matrix.opt }} /Zi %SOURCE_FILE% /Fe:%OUTPUT_EXE% /link /DEBUG:FULL /Brepro
+          if errorlevel 1 exit /b 1
+          if not exist %OUTPUT_EXE% (
+            echo ERROR: Compilation succeeded but %OUTPUT_EXE% not found
+            exit /b 1
+          )
+          echo Compiled %OUTPUT_EXE% successfully
+
+      - name: Backup original binary
+        shell: cmd
+        run: |
+          copy %OUTPUT_EXE% %ORIGINAL_EXE%
+          echo Backed up original binary to %ORIGINAL_EXE%
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install msvcpp-normalize-pe
+        shell: bash
+        run: |
+          # Install uv if not present
+          command -v uv >/dev/null 2>&1 || pip install uv
+          uv pip install .
+          echo "Installed msvcpp-normalize-pe"
+
+      - name: Patch binary
+        shell: bash
+        run: |
+          msvcpp-normalize-pe "$OUTPUT_EXE" --timestamp 1 --verbose
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Patching failed"
+            exit 1
+          fi
+          echo "Patched $OUTPUT_EXE successfully"
+
+      - name: Verify reproducibility
+        shell: bash
+        run: |
+          if [ -f "$REF_PATH" ]; then
+            echo "Reference binary found, comparing hashes..."
+            ACTUAL_HASH=$(sha256sum "$OUTPUT_EXE" | cut -d' ' -f1)
+            EXPECTED_HASH=$(sha256sum "$REF_PATH" | cut -d' ' -f1)
+
+            echo "Expected: $EXPECTED_HASH"
+            echo "Actual:   $ACTUAL_HASH"
+
+            if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+              echo "ERROR: Hash mismatch - reproducibility test failed!"
+              echo "This indicates the patched binary differs from the reference."
+              exit 1
+            fi
+
+            echo "SUCCESS: Hashes match - build is reproducible"
+          else
+            echo "WARNING: Reference binary not found: $REF_NAME"
+            echo "This is expected for initial setup."
+            echo "Download artifacts from this run to generate references."
+            exit 1
+          fi
+
+      - name: Test runtime execution
+        shell: cmd
+        run: |
+          echo Testing patched binary execution...
+          %OUTPUT_EXE%
+          if errorlevel 1 (
+            echo ERROR: Patched binary failed to execute correctly
+            exit /b 1
+          )
+          echo SUCCESS: Patched binary executed correctly
+
+      - name: Upload binaries as artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.program }}-msvc${{ matrix.msvc }}-${{ matrix.arch }}-${{ matrix.opt }}
+          path: |
+            ${{ env.ORIGINAL_EXE }}
+            ${{ env.OUTPUT_EXE }}
+          retention-days: 30
