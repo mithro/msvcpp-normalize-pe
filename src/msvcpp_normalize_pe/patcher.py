@@ -1,9 +1,31 @@
 """Core PE file patching logic."""
 
+from __future__ import annotations
+
 import struct
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Union
+
+# PE file format constants
+_DOS_HEADER_MIN_SIZE = 0x40
+_PE_OFFSET_LOCATION = 0x3C
+_COFF_HEADER_SIZE = 20
+_DEBUG_DIRECTORY_INDEX = 6
+_DEBUG_ENTRY_SIZE = 28
+
+# Debug directory type constants
+_DEBUG_TYPE_CODEVIEW = 2
+_DEBUG_TYPE_REPRO = 16
+
+# PE32/PE32+ magic numbers
+_PE32_MAGIC = 0x10B  # 32-bit
+_PE32_PLUS_MAGIC = 0x20B  # 64-bit
+
+# CODEVIEW signature
+_RSDS_SIGNATURE = 0x53445352  # 'RSDS' in little-endian
+
+# GUID size in bytes
+_GUID_SIZE = 16
 
 
 @dataclass
@@ -12,8 +34,8 @@ class PatchResult:
 
     success: bool
     patches_applied: int
-    errors: List[str] = field(default_factory=list)
-    file_path: Optional[Path] = None
+    errors: list[str] = field(default_factory=list)
+    file_path: Path | None = None
 
 
 @dataclass
@@ -26,22 +48,22 @@ class DebugDirectory:
 
 
 def validate_pe_file(path: Path) -> bool:
-    """
-    Validate that a file is a valid PE executable.
+    """Validate that a file is a valid PE executable.
 
     Args:
         path: Path to file to validate
 
     Returns:
         True if valid PE file, False otherwise
+
     """
     if not path.exists():
         return False
 
-    if path.stat().st_size < 0x40:
+    if path.stat().st_size < _DOS_HEADER_MIN_SIZE:
         return False
 
-    with open(path, "rb") as f:
+    with path.open("rb") as f:
         data = f.read(0x100)
 
     # Check DOS header signature
@@ -49,11 +71,11 @@ def validate_pe_file(path: Path) -> bool:
         return False
 
     # Get PE offset
-    pe_offset = struct.unpack("<I", data[0x3C:0x40])[0]
+    pe_offset = struct.unpack("<I", data[_PE_OFFSET_LOCATION:_DOS_HEADER_MIN_SIZE])[0]
 
     if pe_offset + 4 > len(data):
         # Need to read more
-        with open(path, "rb") as f:
+        with path.open("rb") as f:
             data = f.read(pe_offset + 4)
 
     if len(data) < pe_offset + 4:
@@ -64,33 +86,44 @@ def validate_pe_file(path: Path) -> bool:
     return pe_sig == b"PE\x00\x00"
 
 
-def _find_pe_offset(data: Union[bytes, bytearray]) -> int:
+def _find_pe_offset(data: bytes | bytearray) -> int:
     """Find PE signature offset from DOS header."""
-    if len(data) < 0x40:
-        raise ValueError("File too small for DOS header")
-    pe_offset: int = struct.unpack("<I", data[0x3C:0x40])[0]
+    if len(data) < _DOS_HEADER_MIN_SIZE:
+        msg = "File too small for DOS header"
+        raise ValueError(msg)
+    pe_offset: int = struct.unpack(
+        "<I",
+        data[_PE_OFFSET_LOCATION:_DOS_HEADER_MIN_SIZE],
+    )[0]
     return pe_offset
 
 
-def _verify_pe_signature(data: Union[bytes, bytearray], pe_offset: int) -> None:
+def _verify_pe_signature(data: bytes | bytearray, pe_offset: int) -> None:
     """Verify PE signature at given offset."""
     if len(data) < pe_offset + 4:
-        raise ValueError(f"File too small for PE signature at offset {pe_offset}")
+        msg = f"File too small for PE signature at offset {pe_offset}"
+        raise ValueError(msg)
 
     pe_sig = data[pe_offset : pe_offset + 4]
     if pe_sig != b"PE\x00\x00":
-        raise ValueError(f"Invalid PE signature: {pe_sig.hex()}")
+        msg = f"Invalid PE signature: {pe_sig.hex()}"
+        raise ValueError(msg)
 
 
 def _patch_coff_header(
-    data: bytearray, pe_offset: int, timestamp: int, verbose: bool = False
+    data: bytearray,
+    pe_offset: int,
+    timestamp: int,
+    *,
+    verbose: bool = False,
 ) -> int:
     """Patch COFF header timestamp."""
     coff_offset = pe_offset + 4
     timestamp_offset = coff_offset + 4
 
     if len(data) < timestamp_offset + 4:
-        raise ValueError("File too small for COFF header")
+        msg = "File too small for COFF header"
+        raise ValueError(msg)
 
     original_timestamp = struct.unpack("<I", data[timestamp_offset : timestamp_offset + 4])[0]
     data[timestamp_offset : timestamp_offset + 4] = struct.pack("<I", timestamp)
@@ -102,18 +135,19 @@ def _patch_coff_header(
 
 
 def _find_debug_directory(
-    data: Union[bytes, bytearray], pe_offset: int
-) -> Optional[DebugDirectory]:
+    data: bytes | bytearray,
+    pe_offset: int,
+) -> DebugDirectory | None:
     """Find debug directory location in PE file."""
     coff_offset = pe_offset + 4
 
     # Get number of sections and optional header size
-    if len(data) < coff_offset + 20:
+    if len(data) < coff_offset + _COFF_HEADER_SIZE:
         return None
 
     num_sections = struct.unpack("<H", data[coff_offset + 2 : coff_offset + 4])[0]
     opt_header_size = struct.unpack("<H", data[coff_offset + 16 : coff_offset + 18])[0]
-    opt_header_offset = coff_offset + 20
+    opt_header_offset = coff_offset + _COFF_HEADER_SIZE
 
     if len(data) < opt_header_offset + 2:
         return None
@@ -121,22 +155,25 @@ def _find_debug_directory(
     # Check PE32 (32-bit) or PE32+ (64-bit) magic
     magic = struct.unpack("<H", data[opt_header_offset : opt_header_offset + 2])[0]
 
-    if magic == 0x10B:  # PE32 (32-bit)
+    if magic == _PE32_MAGIC:  # PE32 (32-bit)
         # Data directories start at opt_header_offset + 96 for PE32
         data_dir_offset = opt_header_offset + 96
-    elif magic == 0x20B:  # PE32+ (64-bit)
+    elif magic == _PE32_PLUS_MAGIC:  # PE32+ (64-bit)
         # Data directories start at opt_header_offset + 112 for PE32+
         data_dir_offset = opt_header_offset + 112
     else:
         return None
 
     # Debug directory is entry #6
-    if len(data) < data_dir_offset + 6 * 8 + 8:
+    if len(data) < data_dir_offset + _DEBUG_DIRECTORY_INDEX * 8 + 8:
         return None
 
-    debug_entry_offset = data_dir_offset + 6 * 8
+    debug_entry_offset = data_dir_offset + _DEBUG_DIRECTORY_INDEX * 8
     debug_dir_rva = struct.unpack("<I", data[debug_entry_offset : debug_entry_offset + 4])[0]
-    debug_dir_size = struct.unpack("<I", data[debug_entry_offset + 4 : debug_entry_offset + 8])[0]
+    debug_dir_size = struct.unpack(
+        "<I",
+        data[debug_entry_offset + 4 : debug_entry_offset + 8],
+    )[0]
 
     if debug_dir_rva == 0 or debug_dir_size == 0:
         return None
@@ -155,14 +192,18 @@ def _find_debug_directory(
 
         if virtual_addr <= debug_dir_rva < virtual_addr + virtual_size:
             file_offset = raw_ptr + (debug_dir_rva - virtual_addr)
-            num_entries = debug_dir_size // 28
+            num_entries = debug_dir_size // _DEBUG_ENTRY_SIZE
             return DebugDirectory(file_offset, num_entries, debug_dir_size)
 
     return None
 
 
 def _patch_debug_entries(
-    data: bytearray, debug_dir: DebugDirectory, timestamp: int, verbose: bool = False
+    data: bytearray,
+    debug_dir: DebugDirectory,
+    timestamp: int,
+    *,
+    verbose: bool = False,
 ) -> int:
     """Patch all debug directory entry timestamps."""
     patches = 0
@@ -187,7 +228,7 @@ def _patch_debug_entries(
     }
 
     for j in range(debug_dir.num_entries):
-        entry_offset = debug_dir.file_offset + j * 28
+        entry_offset = debug_dir.file_offset + j * _DEBUG_ENTRY_SIZE
         ts_offset = entry_offset + 4
 
         if len(data) < ts_offset + 4:
@@ -203,52 +244,83 @@ def _patch_debug_entries(
 
         if verbose:
             print(
-                f"  [{patches}/?] Debug {type_name} timestamp: 0x{orig_ts:08x} -> 0x{timestamp:08x}"
+                f"  [{patches}/?] Debug {type_name} timestamp: "
+                f"0x{orig_ts:08x} -> 0x{timestamp:08x}",
             )
 
         # CODEVIEW: Patch GUID and Age
-        if entry_type == 2:
-            ptr_to_data = struct.unpack("<I", data[entry_offset + 24 : entry_offset + 28])[0]
-            if ptr_to_data > 0 and len(data) >= ptr_to_data + 24:
-                cv_sig = struct.unpack("<I", data[ptr_to_data : ptr_to_data + 4])[0]
-                if cv_sig == 0x53445352:  # 'RSDS'
-                    guid_offset = ptr_to_data + 4
-                    age_offset = ptr_to_data + 20
-
-                    orig_guid = data[guid_offset : guid_offset + 16].hex()
-                    data[guid_offset : guid_offset + 16] = bytes(16)
-                    patches += 1
-
-                    if verbose:
-                        print(f"  [{patches}/?] Debug CODEVIEW GUID: {orig_guid} -> {'00' * 16}")
-
-                    orig_age = struct.unpack("<I", data[age_offset : age_offset + 4])[0]
-                    data[age_offset : age_offset + 4] = struct.pack("<I", 1)
-                    patches += 1
-
-                    if verbose:
-                        print(f"  [{patches}/?] Debug CODEVIEW Age: {orig_age} -> 1")
+        if entry_type == _DEBUG_TYPE_CODEVIEW:
+            patches = _patch_codeview_entry(data, entry_offset, patches, verbose=verbose)
 
         # REPRO: Patch hash
-        if entry_type == 16:
-            size_of_data = struct.unpack("<I", data[entry_offset + 16 : entry_offset + 20])[0]
-            ptr_to_data = struct.unpack("<I", data[entry_offset + 24 : entry_offset + 28])[0]
-            if ptr_to_data > 0 and len(data) >= ptr_to_data + size_of_data:
-                orig_hash = data[ptr_to_data : ptr_to_data + size_of_data].hex()[:32]
-                data[ptr_to_data : ptr_to_data + size_of_data] = bytes(size_of_data)
-                patches += 1
-
-                if verbose:
-                    print(
-                        f"  [{patches}/?] Debug REPRO hash: {orig_hash}... -> {'00' * size_of_data}"
-                    )
+        if entry_type == _DEBUG_TYPE_REPRO:
+            patches = _patch_repro_entry(data, entry_offset, patches, verbose=verbose)
 
     return patches
 
 
-def patch_pe_file(pe_path: Path, timestamp: int = 1, verbose: bool = False) -> PatchResult:
-    """
-    Patch PE file to normalize timestamps and GUIDs for reproducibility.
+def _patch_codeview_entry(
+    data: bytearray,
+    entry_offset: int,
+    patches: int,
+    *,
+    verbose: bool,
+) -> int:
+    """Patch CODEVIEW debug entry GUID and Age."""
+    ptr_to_data = struct.unpack("<I", data[entry_offset + 24 : entry_offset + 28])[0]
+    if ptr_to_data > 0 and len(data) >= ptr_to_data + 24:
+        cv_sig = struct.unpack("<I", data[ptr_to_data : ptr_to_data + 4])[0]
+        if cv_sig == _RSDS_SIGNATURE:  # 'RSDS'
+            guid_offset = ptr_to_data + 4
+            age_offset = ptr_to_data + 20
+
+            orig_guid = data[guid_offset : guid_offset + _GUID_SIZE].hex()
+            data[guid_offset : guid_offset + _GUID_SIZE] = bytes(_GUID_SIZE)
+            patches += 1
+
+            if verbose:
+                print(f"  [{patches}/?] Debug CODEVIEW GUID: {orig_guid} -> {'00' * _GUID_SIZE}")
+
+            orig_age = struct.unpack("<I", data[age_offset : age_offset + 4])[0]
+            data[age_offset : age_offset + 4] = struct.pack("<I", 1)
+            patches += 1
+
+            if verbose:
+                print(f"  [{patches}/?] Debug CODEVIEW Age: {orig_age} -> 1")
+
+    return patches
+
+
+def _patch_repro_entry(
+    data: bytearray,
+    entry_offset: int,
+    patches: int,
+    *,
+    verbose: bool,
+) -> int:
+    """Patch REPRO debug entry hash."""
+    size_of_data = struct.unpack("<I", data[entry_offset + 16 : entry_offset + 20])[0]
+    ptr_to_data = struct.unpack("<I", data[entry_offset + 24 : entry_offset + 28])[0]
+    if ptr_to_data > 0 and len(data) >= ptr_to_data + size_of_data:
+        orig_hash = data[ptr_to_data : ptr_to_data + size_of_data].hex()[:32]
+        data[ptr_to_data : ptr_to_data + size_of_data] = bytes(size_of_data)
+        patches += 1
+
+        if verbose:
+            print(
+                f"  [{patches}/?] Debug REPRO hash: {orig_hash}... -> {'00' * size_of_data}",
+            )
+
+    return patches
+
+
+def patch_pe_file(
+    pe_path: Path,
+    timestamp: int = 1,
+    *,
+    verbose: bool = False,
+) -> PatchResult:
+    """Patch PE file to normalize timestamps and GUIDs for reproducibility.
 
     Args:
         pe_path: Path to PE file (.exe or .dll)
@@ -257,21 +329,24 @@ def patch_pe_file(pe_path: Path, timestamp: int = 1, verbose: bool = False) -> P
 
     Returns:
         PatchResult with success status and number of patches applied
+
     """
     pe_path = Path(pe_path)
     result = PatchResult(success=False, patches_applied=0, file_path=pe_path)
 
     # Validate file exists
     if not pe_path.exists():
-        result.errors.append(f"File not found: {pe_path}")
+        msg = f"File not found: {pe_path}"
+        result.errors.append(msg)
         return result
 
     # Read entire file
     try:
-        with open(pe_path, "rb") as f:
+        with pe_path.open("rb") as f:
             data = bytearray(f.read())
     except Exception as e:
-        result.errors.append(f"Failed to read file: {e}")
+        msg = f"Failed to read file: {e}"
+        result.errors.append(msg)
         return result
 
     # Find and verify PE signature
@@ -284,28 +359,31 @@ def patch_pe_file(pe_path: Path, timestamp: int = 1, verbose: bool = False) -> P
 
     # Patch COFF header
     try:
-        patches = _patch_coff_header(data, pe_offset, timestamp, verbose)
+        patches = _patch_coff_header(data, pe_offset, timestamp, verbose=verbose)
         result.patches_applied += patches
     except Exception as e:
-        result.errors.append(f"Failed to patch COFF header: {e}")
+        msg = f"Failed to patch COFF header: {e}"
+        result.errors.append(msg)
         return result
 
     # Patch debug directory entries
     debug_dir = _find_debug_directory(data, pe_offset)
     if debug_dir:
         try:
-            patches = _patch_debug_entries(data, debug_dir, timestamp, verbose)
+            patches = _patch_debug_entries(data, debug_dir, timestamp, verbose=verbose)
             result.patches_applied += patches
         except Exception as e:
-            result.errors.append(f"Failed to patch debug entries: {e}")
+            msg = f"Failed to patch debug entries: {e}"
+            result.errors.append(msg)
             # Don't return - COFF header was patched successfully
 
     # Write back
     try:
-        with open(pe_path, "wb") as f:
+        with pe_path.open("wb") as f:
             f.write(data)
     except Exception as e:
-        result.errors.append(f"Failed to write file: {e}")
+        msg = f"Failed to write file: {e}"
+        result.errors.append(msg)
         return result
 
     result.success = True

@@ -6,4 +6,4 @@ __email__ = "me@mith.ro"
 
 from msvcpp_normalize_pe.patcher import PatchResult, patch_pe_file, validate_pe_file
 
-__all__ = ["patch_pe_file", "validate_pe_file", "PatchResult", "__version__"]
+__all__ = ["PatchResult", "__version__", "patch_pe_file", "validate_pe_file"]

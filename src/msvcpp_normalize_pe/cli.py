@@ -73,7 +73,7 @@ Examples:
 
     # Patch the file
     pe_path = Path(args.pe_file)
-    result = patch_pe_file(pe_path, timestamp, verbose=args.verbose and not args.quiet)
+    result = patch_pe_file(pe_path, timestamp, verbose=(args.verbose and not args.quiet))
 
     # Handle errors
     if not result.success:

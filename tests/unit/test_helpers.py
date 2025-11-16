@@ -14,7 +14,6 @@ def create_mock_dos_header(pe_offset: int = 0x80) -> bytearray:
 def create_mock_pe_file(
     pe_offset: int = 0x80,
     timestamp: int = 0x12345678,
-    has_debug_dir: bool = False,
 ) -> bytearray:
     """Create a minimal valid PE file for testing."""
     # DOS header

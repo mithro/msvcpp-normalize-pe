@@ -1,9 +1,10 @@
 """Integration tests using real PE files."""
 
+from __future__ import annotations
+
 import hashlib
 import shutil
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -12,7 +13,7 @@ from msvcpp_normalize_pe.patcher import patch_pe_file, validate_pe_file
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
 
-def get_pe_fixtures() -> List[Path]:
+def get_pe_fixtures() -> list[Path]:
     """Get all PE file fixtures."""
     if not FIXTURES_DIR.exists():
         return []
@@ -65,7 +66,9 @@ class TestRealPEFiles:
 
     @pytest.mark.parametrize("fixture", get_pe_fixtures(), ids=lambda p: p.name)
     def test_different_timestamps_produce_different_hashes(
-        self, fixture: Path, tmp_path: Path
+        self,
+        fixture: Path,
+        tmp_path: Path,
     ) -> None:
         """Test that different timestamps produce different file hashes."""
         file1 = tmp_path / f"{fixture.stem}_ts1{fixture.suffix}"
