@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from msvc_pe_patcher.patcher import (
+from msvcpp_normalize_pe.patcher import (
     _find_pe_offset,
     _patch_coff_header,
     _verify_pe_signature,

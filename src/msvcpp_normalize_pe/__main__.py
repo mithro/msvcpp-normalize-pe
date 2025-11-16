@@ -2,7 +2,7 @@
 
 import sys
 
-from msvc_pe_patcher.cli import main
+from msvcpp_normalize_pe.cli import main
 
 if __name__ == "__main__":
     sys.exit(main())

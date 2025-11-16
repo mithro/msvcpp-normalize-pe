@@ -92,7 +92,7 @@ clang-cl + lld-link
 * ✅ Supports ``/TIMESTAMP:`` flag
 * ❌ Requires switching from MSVC toolchain
 
-msvc-pe-patcher
+msvcpp-normalize-pe
 ~~~~~~~~~~~~~~~
 
 * ✅ Works with native MSVC

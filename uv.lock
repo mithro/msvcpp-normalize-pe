@@ -442,7 +442,7 @@ wheels = [
 ]
 
 [[package]]
-name = "msvc-pe-patcher"
+name = "msvcpp-normalize-pe"
 version = "1.0.0"
 source = { editable = "." }
 

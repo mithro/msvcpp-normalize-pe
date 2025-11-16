@@ -1,9 +1,9 @@
-# msvc-pe-patcher - Normalize PE Files for Reproducible MSVC++ Builds
+# msvcpp-normalize-pe - Normalize PE Files for Reproducible MSVC++ Builds
 
-[![Documentation](https://readthedocs.org/projects/msvc-pe-patcher/badge/?version=latest)](https://msvc-pe-patcher.readthedocs.io/en/latest/)
-[![PyPI](https://img.shields.io/pypi/v/msvc-pe-patcher.svg)](https://pypi.org/project/msvc-pe-patcher/)
-[![Python Version](https://img.shields.io/pypi/pyversions/msvc-pe-patcher.svg)](https://pypi.org/project/msvc-pe-patcher/)
-[![Tests](https://github.com/mithro/msvc-pe-patcher/workflows/Test%20%26%20Lint/badge.svg)](https://github.com/mithro/msvc-pe-patcher/actions)
+[![Documentation](https://readthedocs.org/projects/msvcpp-normalize-pe/badge/?version=latest)](https://msvcpp-normalize-pe.readthedocs.io/en/latest/)
+[![PyPI](https://img.shields.io/pypi/v/msvcpp-normalize-pe.svg)](https://pypi.org/project/msvcpp-normalize-pe/)
+[![Python Version](https://img.shields.io/pypi/pyversions/msvcpp-normalize-pe.svg)](https://pypi.org/project/msvcpp-normalize-pe/)
+[![Tests](https://github.com/mithro/msvcpp-normalize-pe/workflows/Test%20%26%20Lint/badge.svg)](https://github.com/mithro/msvcpp-normalize-pe/actions)
 
 A Python tool to patch Windows PE (Portable Executable) files to make MSVC builds reproducible by normalizing timestamps, GUIDs, and other non-deterministic debug metadata.
 
@@ -58,50 +58,50 @@ The binary behaves **identically at runtime** - only metadata used for debugging
 ### From PyPI (Recommended)
 
 ```bash
-pip install msvc-pe-patcher
+pip install msvcpp-normalize-pe
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/mithro/msvc-pe-patcher.git
-cd msvc-pe-patcher
+git clone https://github.com/mithro/msvcpp-normalize-pe.git
+cd msvcpp-normalize-pe
 pip install .
 ```
 
 ### Using uv
 
 ```bash
-uv pip install msvc-pe-patcher
+uv pip install msvcpp-normalize-pe
 ```
 
 ## Usage
 
 ### Command Line
 
-After installation, the `msvc-pe-patcher` command is available:
+After installation, the `msvcpp-normalize-pe` command is available:
 
 ```bash
 # Basic usage
-msvc-pe-patcher program.exe
+msvcpp-normalize-pe program.exe
 
 # Custom timestamp
-msvc-pe-patcher program.exe 1234567890
+msvcpp-normalize-pe program.exe 1234567890
 
 # Verbose output
-msvc-pe-patcher --verbose program.exe
+msvcpp-normalize-pe --verbose program.exe
 
 # See all options
-msvc-pe-patcher --help
+msvcpp-normalize-pe --help
 ```
 
 ### Python API
 
-You can also use msvc-pe-patcher as a library in your Python code:
+You can also use msvcpp-normalize-pe as a library in your Python code:
 
 ```python
 from pathlib import Path
-from msvc_pe_patcher import patch_pe_file
+from msvcpp_normalize_pe import patch_pe_file
 
 result = patch_pe_file(Path("program.exe"), timestamp=1, verbose=True)
 if result.success:
@@ -133,7 +133,7 @@ else:
 ifeq ($(USE_NATIVE_MSVC),1)
   program.exe: program.cpp
 	cl.exe /O2 /Zi program.cpp /link /DEBUG:FULL /Brepro
-	msvc-pe-patcher program.exe 1
+	msvcpp-normalize-pe program.exe 1
 endif
 ```
 
@@ -149,7 +149,7 @@ jobs:
       - name: Build from source
         run: |
           cl.exe /O2 program.cpp /link /DEBUG:FULL /Brepro
-          msvc-pe-patcher program.exe 1
+          msvcpp-normalize-pe program.exe 1
 
       - name: Compare with committed binary
         run: |

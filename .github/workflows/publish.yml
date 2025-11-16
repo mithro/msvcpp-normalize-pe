@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/msvc-pe-patcher
+      url: https://test.pypi.org/p/msvcpp-normalize-pe
 
     permissions:
       id-token: write
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/msvc-pe-patcher
+      url: https://pypi.org/p/msvcpp-normalize-pe
 
     permissions:
       id-token: write

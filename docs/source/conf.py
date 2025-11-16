@@ -7,12 +7,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Project information
-project = "msvc-pe-patcher"
+project = "msvcpp-normalize-pe"
 copyright = "2025, Tim Ansell"
 author = "Tim Ansell"
 
 # Get version from package
-from msvc_pe_patcher import __version__
+from msvcpp_normalize_pe import __version__
 
 release = __version__
 
