@@ -3,6 +3,16 @@ msvcpp-normalize-pe Documentation
 
 **Normalize PE files for reproducible MSVC++ builds**
 
+.. warning::
+   **AI-Assisted Development Notice**
+
+   This project was developed as an experiment in AI-assisted "vibe coding" using Claude Code.
+   While the code has comprehensive tests and linting, it was primarily generated through AI
+   assistance. The implementation is based on reverse-engineering PE file formats and may have
+   edge cases or behaviors that haven't been thoroughly tested with all possible MSVC
+   configurations. Use with caution in production environments and verify results with your
+   specific toolchain.
+
 ``msvcpp-normalize-pe`` is a Python tool that patches Windows PE (Portable Executable)
 files to make MSVC builds reproducible by normalizing timestamps, GUIDs, and other
 non-deterministic debug metadata.
