@@ -3,6 +3,7 @@
 import hashlib
 import shutil
 from pathlib import Path
+from typing import List
 
 import pytest
 
@@ -11,7 +12,7 @@ from msvc_pe_patcher.patcher import patch_pe_file, validate_pe_file
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
 
-def get_pe_fixtures() -> list[Path]:
+def get_pe_fixtures() -> List[Path]:
     """Get all PE file fixtures."""
     if not FIXTURES_DIR.exists():
         return []
