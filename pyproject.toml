@@ -72,6 +72,7 @@ select = [
     "COM",    # flake8-commas
     "D",      # pydocstyle
     "RUF",    # ruff-specific rules
+    "PLR",    # pylint refactoring
 ]
 
 ignore = [
@@ -85,9 +86,6 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
     "S101",    # Assert statements are required in tests
-    "PLR2004", # Magic values are acceptable in tests
-    "FBT001",  # Boolean positional args are fine in test helpers
-    "FBT002",  # Boolean default args are fine in test helpers
 ]
 "src/msvcpp_normalize_pe/cli.py" = [
     "T201",    # print() is appropriate for CLI tool

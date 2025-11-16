@@ -14,14 +14,19 @@ from msvcpp_normalize_pe.patcher import (
 )
 from tests.unit.test_helpers import create_mock_dos_header, create_mock_pe_file
 
+# Test constants
+_TEST_PE_OFFSET = 0x100
+_TEST_TIMESTAMP = 42
+_CUSTOM_TIMESTAMP = 0xABCDEF00
+
 
 class TestFindPEOffset:
     """Tests for _find_pe_offset function."""
 
     def test_valid_dos_header(self) -> None:
         """Test PE offset detection with valid DOS header."""
-        data = create_mock_dos_header(pe_offset=0x100)
-        assert _find_pe_offset(data) == 0x100
+        data = create_mock_dos_header(pe_offset=_TEST_PE_OFFSET)
+        assert _find_pe_offset(data) == _TEST_PE_OFFSET
 
     def test_different_offsets(self) -> None:
         """Test various PE offset values."""
@@ -68,10 +73,10 @@ class TestPatchCOFFHeader:
         coff_offset = pe_offset + 4
         ts_offset = coff_offset + 4
 
-        patches = _patch_coff_header(data, pe_offset, timestamp=42)
+        patches = _patch_coff_header(data, pe_offset, timestamp=_TEST_TIMESTAMP)
 
         assert patches == 1
-        assert struct.unpack("<I", data[ts_offset : ts_offset + 4])[0] == 42
+        assert struct.unpack("<I", data[ts_offset : ts_offset + 4])[0] == _TEST_TIMESTAMP
 
     def test_preserves_other_fields(self) -> None:
         """Test that patching doesn't corrupt adjacent fields."""
@@ -146,13 +151,13 @@ class TestPatchPEFile:
         pe_file = tmp_path / "test.exe"
         pe_file.write_bytes(create_mock_pe_file())
 
-        result = patch_pe_file(pe_file, timestamp=0xABCDEF00)
+        result = patch_pe_file(pe_file, timestamp=_CUSTOM_TIMESTAMP)
 
         assert result.success is True
 
         data = pe_file.read_bytes()
         ts_offset = 0x80 + 4 + 4
-        assert struct.unpack("<I", data[ts_offset : ts_offset + 4])[0] == 0xABCDEF00
+        assert struct.unpack("<I", data[ts_offset : ts_offset + 4])[0] == _CUSTOM_TIMESTAMP
 
     def test_invalid_pe_file(self, tmp_path: Path) -> None:
         """Test patching invalid PE file returns error."""
