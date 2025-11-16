@@ -1,44 +1,49 @@
 # Test Fixtures
 
-This directory contains sample PE files for integration testing.
+This directory contains test fixtures for msvcpp-normalize-pe.
+
+## Structure
+
+```
+fixtures/
+├── sources/          # C++ source files for Windows compilation tests
+│   ├── simple.cpp    # Minimal test program
+│   ├── complex.cpp   # Realistic program with STL
+│   └── README.md
+├── references/       # Reference binaries (Git submodule, to be set up)
+│   ├── .gitkeep
+│   └── README.md
+└── README.md         # This file
+```
 
 ## Generating Test Fixtures
 
-Since we cannot commit binary PE files to the repository, you need to generate
-test fixtures before running integration tests.
+### Automated (GitHub Actions)
 
-### On Windows with MSVC
+The Windows compilation test workflow automatically builds binaries for:
+- MSVC version: 2019
+- Architectures: x86, x64
+- Optimization levels: /Od, /O2
+- Programs: simple, complex
 
-```bash
-# Simple C program
-echo 'int main() { return 0; }' > test.c
+See `.github/workflows/test-windows.yml` for details.
 
-# Compile with MSVC 2019+ with debug info and /Brepro
-cl.exe /O2 /Zi /std:c11 test.c /link /DEBUG:FULL /Brepro /OUT:msvc2022_x64.exe
-
-# Copy to fixtures
-copy msvc2022_x64.exe tests\fixtures\
-```
-
-### Using Docker (Cross-platform)
+### Manual (Windows with MSVC)
 
 ```bash
-# Use Wine + MSVC in Docker
-docker run --rm -v $(pwd):/work wine-msvc \
-  cl.exe /O2 test.c /link /DEBUG:FULL /Brepro
+# Simple program
+cl.exe /std:c++17 /O2 /Zi sources/simple.cpp /Fe:simple.exe /link /DEBUG:FULL /Brepro
+
+# Patch it
+msvcpp-normalize-pe simple.exe --timestamp 1
 ```
 
-### Alternative: Use Existing PE Files
+## Reference Binaries
 
-Any PE executable with debug information will work:
-- Windows SDK tools (link.exe, cl.exe, etc.)
-- Third-party tools compiled with MSVC
+Reference binaries for reproducibility testing will be stored in a separate Git submodule.
+See `references/README.md` for setup instructions.
 
-## Fixture Verification
+## Integration Tests
 
-After adding a fixture, verify it's a valid PE file:
-
-```bash
-file tests/fixtures/your_file.exe
-# Should show: "PE32+ executable (console) x86-64, for MS Windows"
-```
+The integration tests (`tests/integration/test_real_pe_files.py`) use PE files from this directory.
+Currently, these tests are skipped because no reference binaries are committed yet.

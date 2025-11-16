@@ -4,6 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/msvcpp-normalize-pe.svg)](https://pypi.org/project/msvcpp-normalize-pe/)
 [![Python Version](https://img.shields.io/pypi/pyversions/msvcpp-normalize-pe.svg)](https://pypi.org/project/msvcpp-normalize-pe/)
 [![Tests](https://github.com/mithro/msvcpp-normalize-pe/workflows/Test%20%26%20Lint/badge.svg)](https://github.com/mithro/msvcpp-normalize-pe/actions)
+[![Windows Tests](https://github.com/mithro/msvcpp-normalize-pe/workflows/Test%20Windows%20C++%20Compilation/badge.svg)](https://github.com/mithro/msvcpp-normalize-pe/actions/workflows/test-windows.yml)
 
 **⚠️ AI-Assisted Development Notice: This project was developed as an experiment in AI-assisted "vibe coding" using Claude Code. While the code has comprehensive tests and linting, it was primarily generated through AI assistance. The implementation is based on reverse-engineering PE file formats and may have edge cases or behaviors that haven't been thoroughly tested with all possible MSVC configurations. Use with caution in production environments and verify results with your specific toolchain.**
 
