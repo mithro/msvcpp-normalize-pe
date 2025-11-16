@@ -54,21 +54,50 @@ target-version = "py38"
 
 [tool.ruff.lint]
 select = [
-    "E",    # pycodestyle errors
-    "F",    # pyflakes
-    "I",    # isort
-    "N",    # pep8-naming
-    "UP",   # pyupgrade
-    "B",    # flake8-bugbear
-    "A",    # flake8-builtins
-    "C4",   # flake8-comprehensions
-    "PIE",  # flake8-pie
-    "RET",  # flake8-return
-    "SIM",  # flake8-simplify
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+    "C4",     # flake8-comprehensions
+    "PIE",    # flake8-pie
+    "RET",    # flake8-return
+    "SIM",    # flake8-simplify
+    "PTH",    # flake8-use-pathlib
+    "FBT",    # flake8-boolean-trap
+    "EM",     # flake8-errmsg
+    "TRY",    # tryceratops
+    "FA",     # flake8-future-annotations
+    "COM",    # flake8-commas
+    "D",      # pydocstyle
+    "RUF",    # ruff-specific rules
+]
+
+ignore = [
+    "TRY003",  # Long exception messages are fine in this codebase
+    "EM101",   # Exception message string literals are acceptable
+    "EM102",   # Exception message f-strings are acceptable
+    "D203",    # Incompatible with D211
+    "D213",    # Incompatible with D212
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
+"tests/*" = [
+    "S101",    # Assert statements are required in tests
+    "PLR2004", # Magic values are acceptable in tests
+    "FBT001",  # Boolean positional args are fine in test helpers
+    "FBT002",  # Boolean default args are fine in test helpers
+]
+"src/msvcpp_normalize_pe/cli.py" = [
+    "T201",    # print() is appropriate for CLI tool
+]
+"src/msvcpp_normalize_pe/patcher.py" = [
+    "T201",    # print() used for verbose output
+    "PLR0911", # Multiple returns in validation function is clear
+    "BLE001",  # Generic exceptions needed for robustness
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -82,12 +111,16 @@ addopts = [
 ]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_any_generics = true
+# Ignore external packages that may use newer Python syntax
+exclude = [
+    "^\\.venv/",
+]
 
 [tool.coverage.run]
 branch = true
