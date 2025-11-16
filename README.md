@@ -1,4 +1,9 @@
-# msvcpp-normalize-pe - Normalize PE Files for Reproducible MSVC++ Builds
+# msvc-pe-patcher - Normalize PE Files for Reproducible MSVC++ Builds
+
+[![Documentation](https://readthedocs.org/projects/msvc-pe-patcher/badge/?version=latest)](https://msvc-pe-patcher.readthedocs.io/en/latest/)
+[![PyPI](https://img.shields.io/pypi/v/msvc-pe-patcher.svg)](https://pypi.org/project/msvc-pe-patcher/)
+[![Python Version](https://img.shields.io/pypi/pyversions/msvc-pe-patcher.svg)](https://pypi.org/project/msvc-pe-patcher/)
+[![Tests](https://github.com/mithro/msvc-pe-patcher/workflows/Test%20%26%20Lint/badge.svg)](https://github.com/mithro/msvc-pe-patcher/actions)
 
 A Python tool to patch Windows PE (Portable Executable) files to make MSVC builds reproducible by normalizing timestamps, GUIDs, and other non-deterministic debug metadata.
 
@@ -48,23 +53,62 @@ After patching, **identical source code produces byte-for-byte identical binarie
 
 The binary behaves **identically at runtime** - only metadata used for debugging is normalized.
 
+## Installation
+
+### From PyPI (Recommended)
+
+```bash
+pip install msvc-pe-patcher
+```
+
+### From Source
+
+```bash
+git clone https://github.com/mithro/msvc-pe-patcher.git
+cd msvc-pe-patcher
+pip install .
+```
+
+### Using uv
+
+```bash
+uv pip install msvc-pe-patcher
+```
+
 ## Usage
 
-### Basic Usage
+### Command Line
+
+After installation, the `msvc-pe-patcher` command is available:
 
 ```bash
-python3 patch_pe_timestamp.py program.exe
+# Basic usage
+msvc-pe-patcher program.exe
+
+# Custom timestamp
+msvc-pe-patcher program.exe 1234567890
+
+# Verbose output
+msvc-pe-patcher --verbose program.exe
+
+# See all options
+msvc-pe-patcher --help
 ```
 
-This patches `program.exe` in-place, normalizing all timestamps to 1 and GUIDs to zeros.
+### Python API
 
-### Custom Timestamp Value
+You can also use msvc-pe-patcher as a library in your Python code:
 
-```bash
-python3 patch_pe_timestamp.py program.exe 1234567890
+```python
+from pathlib import Path
+from msvc_pe_patcher import patch_pe_file
+
+result = patch_pe_file(Path("program.exe"), timestamp=1, verbose=True)
+if result.success:
+    print(f"Patched {result.patches_applied} fields")
+else:
+    print(f"Errors: {result.errors}")
 ```
-
-Use a specific Unix timestamp instead of 1.
 
 ### Example Output
 
@@ -89,7 +133,7 @@ Use a specific Unix timestamp instead of 1.
 ifeq ($(USE_NATIVE_MSVC),1)
   program.exe: program.cpp
 	cl.exe /O2 /Zi program.cpp /link /DEBUG:FULL /Brepro
-	python3 patch_pe_timestamp.py program.exe 1
+	msvc-pe-patcher program.exe 1
 endif
 ```
 
@@ -105,7 +149,7 @@ jobs:
       - name: Build from source
         run: |
           cl.exe /O2 program.cpp /link /DEBUG:FULL /Brepro
-          python patch_pe_timestamp.py program.exe 1
+          msvc-pe-patcher program.exe 1
 
       - name: Compare with committed binary
         run: |
@@ -114,11 +158,11 @@ jobs:
 
 ## Requirements
 
-- **Python 3.6+** (uses `pathlib`, f-strings)
+- **Python 3.8+** (type hints, dataclasses)
 - **Target files**: Windows PE executables (.exe) or DLLs (.dll)
 - **Architecture**: Works with both 32-bit (PE32) and 64-bit (PE32+) binaries
 
-No external dependencies - uses only Python standard library (`struct`, `sys`, `pathlib`).
+No runtime dependencies - uses only Python standard library (`struct`, `sys`, `pathlib`, `dataclasses`).
 
 ## Limitations and Known Issues
 
