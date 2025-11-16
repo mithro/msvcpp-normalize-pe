@@ -8,7 +8,7 @@ from pathlib import Path
 from hypothesis import given
 from hypothesis import strategies as st
 
-from msvc_pe_patcher.patcher import patch_pe_file, validate_pe_file
+from msvcpp_normalize_pe.patcher import patch_pe_file, validate_pe_file
 from tests.unit.test_helpers import create_mock_pe_file
 
 

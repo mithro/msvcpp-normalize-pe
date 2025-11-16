@@ -1,5 +1,5 @@
 [project]
-name = "msvc-pe-patcher"
+name = "msvcpp-normalize-pe"
 version = "1.0.0"
 description = "Normalize PE files for reproducible MSVC++ builds"
 readme = "README.md"
@@ -26,14 +26,14 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
-msvc-pe-patcher = "msvc_pe_patcher.cli:main"
+msvcpp-normalize-pe = "msvcpp_normalize_pe.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/mithro/msvc-pe-patcher"
-Documentation = "https://msvc-pe-patcher.readthedocs.io"
-Repository = "https://github.com/mithro/msvc-pe-patcher"
-Issues = "https://github.com/mithro/msvc-pe-patcher/issues"
-Changelog = "https://github.com/mithro/msvc-pe-patcher/releases"
+Homepage = "https://github.com/mithro/msvcpp-normalize-pe"
+Documentation = "https://msvcpp-normalize-pe.readthedocs.io"
+Repository = "https://github.com/mithro/msvcpp-normalize-pe"
+Issues = "https://github.com/mithro/msvcpp-normalize-pe/issues"
+Changelog = "https://github.com/mithro/msvcpp-normalize-pe/releases"
 
 [build-system]
 requires = ["hatchling"]
@@ -74,7 +74,7 @@ select = [
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = [
-    "--cov=msvc_pe_patcher",
+    "--cov=msvcpp_normalize_pe",
     "--cov-report=term-missing",
     "--cov-report=xml",
     "--strict-markers",

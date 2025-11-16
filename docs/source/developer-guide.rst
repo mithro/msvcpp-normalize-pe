@@ -16,8 +16,8 @@ Clone Repository
 
 .. code-block:: bash
 
-   git clone https://github.com/mithro/msvc-pe-patcher.git
-   cd msvc-pe-patcher
+   git clone https://github.com/mithro/msvcpp-normalize-pe.git
+   cd msvcpp-normalize-pe
 
 Install Development Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,7 +104,7 @@ Directory Structure
 
 ::
 
-   src/msvc_pe_patcher/
+   src/msvcpp_normalize_pe/
    ├── __init__.py       # Package metadata
    ├── __main__.py       # CLI entry point
    ├── cli.py            # Argument parsing
@@ -161,7 +161,7 @@ Release Process
 Version Bumping
 ~~~~~~~~~~~~~~~
 
-1. Update version in ``src/msvc_pe_patcher/__init__.py``
+1. Update version in ``src/msvcpp_normalize_pe/__init__.py``
 2. Update version in ``pyproject.toml``
 3. Commit: ``git commit -m "chore: bump version to X.Y.Z"``
 

@@ -9,15 +9,15 @@ From PyPI
 
 .. code-block:: bash
 
-   pip install msvc-pe-patcher
+   pip install msvcpp-normalize-pe
 
 From Source
 ~~~~~~~~~~~
 
 .. code-block:: bash
 
-   git clone https://github.com/mithro/msvc-pe-patcher.git
-   cd msvc-pe-patcher
+   git clone https://github.com/mithro/msvcpp-normalize-pe.git
+   cd msvcpp-normalize-pe
    pip install .
 
 Using uv
@@ -25,7 +25,7 @@ Using uv
 
 .. code-block:: bash
 
-   uv pip install msvc-pe-patcher
+   uv pip install msvcpp-normalize-pe
 
 Basic Usage
 -----------
@@ -37,7 +37,7 @@ Patch a PE file with default timestamp (1):
 
 .. code-block:: bash
 
-   msvc-pe-patcher program.exe
+   msvcpp-normalize-pe program.exe
 
 Custom Timestamp
 ~~~~~~~~~~~~~~~~
@@ -46,13 +46,13 @@ Use a specific Unix timestamp:
 
 .. code-block:: bash
 
-   msvc-pe-patcher program.exe 1234567890
+   msvcpp-normalize-pe program.exe 1234567890
 
 Or using explicit flag:
 
 .. code-block:: bash
 
-   msvc-pe-patcher --timestamp 1234567890 program.exe
+   msvcpp-normalize-pe --timestamp 1234567890 program.exe
 
 Verbose Output
 ~~~~~~~~~~~~~~
@@ -61,7 +61,7 @@ Show detailed information about each patched field:
 
 .. code-block:: bash
 
-   msvc-pe-patcher --verbose program.exe
+   msvcpp-normalize-pe --verbose program.exe
 
 Quiet Mode
 ~~~~~~~~~~
@@ -70,7 +70,7 @@ Suppress output except errors:
 
 .. code-block:: bash
 
-   msvc-pe-patcher --quiet program.exe
+   msvcpp-normalize-pe --quiet program.exe
 
 Integration Examples
 --------------------
@@ -82,7 +82,7 @@ Makefile
 
    program.exe: program.cpp
        cl.exe /O2 /Zi program.cpp /link /DEBUG:FULL /Brepro
-       msvc-pe-patcher program.exe 1
+       msvcpp-normalize-pe program.exe 1
 
 GitHub Actions
 ~~~~~~~~~~~~~~
@@ -92,7 +92,7 @@ GitHub Actions
    - name: Build and normalize
      run: |
        cl.exe /O2 program.cpp /link /DEBUG:FULL /Brepro
-       msvc-pe-patcher program.exe 1
+       msvcpp-normalize-pe program.exe 1
 
    - name: Verify reproducibility
      run: |

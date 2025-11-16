@@ -1,9 +1,9 @@
-msvc-pe-patcher Documentation
+msvcpp-normalize-pe Documentation
 ==============================
 
 **Normalize PE files for reproducible MSVC++ builds**
 
-``msvc-pe-patcher`` is a Python tool that patches Windows PE (Portable Executable)
+``msvcpp-normalize-pe`` is a Python tool that patches Windows PE (Portable Executable)
 files to make MSVC builds reproducible by normalizing timestamps, GUIDs, and other
 non-deterministic debug metadata.
 
@@ -22,13 +22,13 @@ Install from PyPI:
 
 .. code-block:: bash
 
-   pip install msvc-pe-patcher
+   pip install msvcpp-normalize-pe
 
 Patch a PE file:
 
 .. code-block:: bash
 
-   msvc-pe-patcher program.exe
+   msvcpp-normalize-pe program.exe
 
 Features
 --------

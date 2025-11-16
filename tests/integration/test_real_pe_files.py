@@ -7,7 +7,7 @@ from typing import List
 
 import pytest
 
-from msvc_pe_patcher.patcher import patch_pe_file, validate_pe_file
+from msvcpp_normalize_pe.patcher import patch_pe_file, validate_pe_file
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 

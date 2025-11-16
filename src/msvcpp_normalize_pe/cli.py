@@ -4,14 +4,14 @@ import argparse
 import sys
 from pathlib import Path
 
-from msvc_pe_patcher import __version__
-from msvc_pe_patcher.patcher import patch_pe_file
+from msvcpp_normalize_pe import __version__
+from msvcpp_normalize_pe.patcher import patch_pe_file
 
 
 def main() -> int:
     """Entry point for msvc-pe-patcher command."""
     parser = argparse.ArgumentParser(
-        prog="msvc-pe-patcher",
+        prog="msvcpp-normalize-pe",
         description="Normalize PE files for reproducible MSVC++ builds",
         epilog="""
 Examples:
