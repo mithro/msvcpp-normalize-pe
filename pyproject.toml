@@ -1,6 +1,6 @@
 [project]
 name = "msvcpp-normalize-pe"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Normalize PE files for reproducible MSVC++ builds"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -35,8 +35,14 @@ Issues = "https://github.com/mithro/msvcpp-normalize-pe/issues"
 Changelog = "https://github.com/mithro/msvcpp-normalize-pe/releases"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+# Use git-describe for version numbering
+# Formats versions like: 0.0.post37+g3a3ceb5 (37 commits after v0.0 tag)
+version_scheme = "post-release"
+local_scheme = "no-local-version"
 
 [dependency-groups]
 dev = [
