@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        msvc: ['2017', '2019', '2022']
+        msvc: ['2019']  # Only MSVC 2019 toolset available on windows-latest
         arch: [x86, x64]
         opt: [Od, O2]
         program: [simple, complex]
@@ -68,7 +68,7 @@ jobs:
         run: |
           # Install uv if not present
           command -v uv >/dev/null 2>&1 || pip install uv
-          uv pip install .
+          uv pip install --system .
           echo "Installed msvcpp-normalize-pe"
 
       - name: Patch binary
