@@ -17,9 +17,7 @@ def get_pe_fixtures() -> list[Path]:
         return []
 
     return [
-        f
-        for f in FIXTURES_DIR.iterdir()
-        if f.suffix in {".exe", ".dll"} and f.name != "README.md"
+        f for f in FIXTURES_DIR.iterdir() if f.suffix in {".exe", ".dll"} and f.name != "README.md"
     ]
 
 

@@ -135,12 +135,8 @@ def _find_debug_directory(
         return None
 
     debug_entry_offset = data_dir_offset + 6 * 8
-    debug_dir_rva = struct.unpack(
-        "<I", data[debug_entry_offset : debug_entry_offset + 4]
-    )[0]
-    debug_dir_size = struct.unpack(
-        "<I", data[debug_entry_offset + 4 : debug_entry_offset + 8]
-    )[0]
+    debug_dir_rva = struct.unpack("<I", data[debug_entry_offset : debug_entry_offset + 4])[0]
+    debug_dir_size = struct.unpack("<I", data[debug_entry_offset + 4 : debug_entry_offset + 8])[0]
 
     if debug_dir_rva == 0 or debug_dir_size == 0:
         return None
@@ -207,8 +203,7 @@ def _patch_debug_entries(
 
         if verbose:
             print(
-                f"  [{patches}/?] Debug {type_name} timestamp: "
-                f"0x{orig_ts:08x} -> 0x{timestamp:08x}"
+                f"  [{patches}/?] Debug {type_name} timestamp: 0x{orig_ts:08x} -> 0x{timestamp:08x}"
             )
 
         # CODEVIEW: Patch GUID and Age
@@ -225,10 +220,7 @@ def _patch_debug_entries(
                     patches += 1
 
                     if verbose:
-                        print(
-                            f"  [{patches}/?] Debug CODEVIEW GUID: "
-                            f"{orig_guid} -> {'00' * 16}"
-                        )
+                        print(f"  [{patches}/?] Debug CODEVIEW GUID: {orig_guid} -> {'00' * 16}")
 
                     orig_age = struct.unpack("<I", data[age_offset : age_offset + 4])[0]
                     data[age_offset : age_offset + 4] = struct.pack("<I", 1)
@@ -248,8 +240,7 @@ def _patch_debug_entries(
 
                 if verbose:
                     print(
-                        f"  [{patches}/?] Debug REPRO hash: "
-                        f"{orig_hash}... -> {'00' * size_of_data}"
+                        f"  [{patches}/?] Debug REPRO hash: {orig_hash}... -> {'00' * size_of_data}"
                     )
 
     return patches

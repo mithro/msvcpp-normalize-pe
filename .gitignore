@@ -47,3 +47,5 @@ Thumbs.db
 *.dll
 *.pdb
 test_*.exe
+.hypothesis/
+coverage.xml

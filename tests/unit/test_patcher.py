@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from msvc_pe_patcher.patcher import (
-    PatchResult,
     _find_pe_offset,
     _patch_coff_header,
     _verify_pe_signature,
@@ -48,7 +47,7 @@ class TestVerifyPESignature:
     def test_invalid_signature(self) -> None:
         """Test invalid PE signature detection."""
         data = bytearray(0x100)
-        data[0x80 : 0x84] = b"XXXX"  # Invalid signature
+        data[0x80:0x84] = b"XXXX"  # Invalid signature
         with pytest.raises(ValueError, match="Invalid PE signature"):
             _verify_pe_signature(data, pe_offset=0x80)
 
