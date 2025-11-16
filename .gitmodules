@@ -1,0 +1,3 @@
+[submodule "tests/fixtures/references"]
+	path = tests/fixtures/references
+	url = https://github.com/mithro/msvcpp-normalize-pe-test-binaries.git
